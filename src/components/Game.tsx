@@ -127,22 +127,24 @@ export const Game: React.FC = () => {
   }
 
   return (
-    <div className="max-w-md mx-auto p-4">
-      <div className="flex justify-center mb-8">
-        <h1 className="text-3xl font-bold">WORDLE</h1>
+    <div className="max-w-md w-full mx-auto p-4 flex flex-col items-center">
+      <div className="flex justify-center mb-8 w-full">
+        <h1 className="text-3xl font-bold text-center">Cardle: Guess the Card!</h1>
       </div>
 
       {message && (
-        <div className="bg-gray-100 dark:bg-gray-800 p-2 text-center mb-4 rounded">
+        <div className="bg-gray-100 dark:bg-gray-800 p-2 text-center mb-4 rounded w-full">
           {message}
         </div>
       )}
 
-      <div className="mb-8">
+      <div className="mb-8 flex flex-col items-center">
         {rows}
       </div>
 
-      <Keyboard onKeyPress={handleKeyPress} letterStates={letterStates} />
+      <div className="w-full">
+        <Keyboard onKeyPress={handleKeyPress} letterStates={letterStates} />
+      </div>
       
       {gameOver && (
         <div className="mt-8 text-center">
