@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { WordRow } from './WordRow';
 import { Keyboard } from './Keyboard';
-import { getRandomWord, isValidWord } from '@/utils/words';
+import { isValidWord } from '@/utils/words';
+import { getPlayableCardName } from '@/utils/scryfall';
 import { evaluateGuess, GuessResult, getKeyboardLetterStates, isCorrectGuess } from '@/utils/game';
 
 export const Game: React.FC = () => {
@@ -11,17 +12,29 @@ export const Game: React.FC = () => {
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [gameWon, setGameWon] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [originalCardName, setOriginalCardName] = useState<string>('');
   
   // Initialize a new game
-  const startNewGame = useCallback(() => {
-    const newWord = getRandomWord();
-    setTargetWord(newWord);
-    setGuesses([]);
-    setCurrentGuess('');
-    setGameOver(false);
-    setGameWon(false);
-    setMessage('');
-    console.log('New word:', newWord); // For debugging
+  const startNewGame = useCallback(async () => {
+    setLoading(true);
+    setMessage('Loading new card...');
+    
+    try {
+      const newWord = await getPlayableCardName();
+      setTargetWord(newWord);
+      // Original card name is logged in getPlayableCardName
+      setGuesses([]);
+      setCurrentGuess('');
+      setGameOver(false);
+      setGameWon(false);
+      setMessage('');
+    } catch (error) {
+      console.error('Failed to start new game:', error);
+      setMessage('Failed to load a card. Try again later.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   // Initialize on first render
@@ -32,7 +45,7 @@ export const Game: React.FC = () => {
   // Handle physical keyboard input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (gameOver) return;
+      if (gameOver || loading) return;
 
       if (e.key === 'Enter') {
         handleEnter();
@@ -47,10 +60,10 @@ export const Game: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [currentGuess, gameOver, guesses]);
+  }, [currentGuess, gameOver, loading, guesses]);
 
   const handleKeyPress = (key: string) => {
-    if (gameOver) return;
+    if (gameOver || loading) return;
 
     if (key === 'ENTER') {
       handleEnter();
@@ -79,12 +92,13 @@ export const Game: React.FC = () => {
       return;
     }
 
-    // Validate the word is in our dictionary
-    if (!isValidWord(currentGuess)) {
-      setMessage('Not in word list');
-      setTimeout(() => setMessage(''), 2000);
-      return;
-    }
+    // Validate word only if using dictionary validation
+    // For card game, we'll accept any 5-letter combination
+    // if (!isValidWord(currentGuess)) {
+    //   setMessage('Not in word list');
+    //   setTimeout(() => setMessage(''), 2000);
+    //   return;
+    // }
 
     // Evaluate the guess
     const result = evaluateGuess(currentGuess, targetWord);
@@ -96,12 +110,12 @@ export const Game: React.FC = () => {
     if (isCorrectGuess(currentGuess, targetWord)) {
       setGameWon(true);
       setGameOver(true);
-      setMessage(`Correct! The word was ${targetWord}`);
+      setMessage(`Correct! The card name was ${targetWord}`);
     } 
     // Check if the player lost (used all 6 guesses)
     else if (newGuesses.length >= 6) {
       setGameOver(true);
-      setMessage(`Game over! The word was ${targetWord}`);
+      setMessage(`Game over! The card name was ${targetWord}`);
     }
   };
 
@@ -138,9 +152,15 @@ export const Game: React.FC = () => {
         </div>
       )}
 
-      <div className="mb-8 flex flex-col items-center">
-        {rows}
-      </div>
+      {loading ? (
+        <div className="mb-8 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      ) : (
+        <div className="mb-8 flex flex-col items-center">
+          {rows}
+        </div>
+      )}
 
       <div className="w-full">
         <Keyboard onKeyPress={handleKeyPress} letterStates={letterStates} />
@@ -149,10 +169,11 @@ export const Game: React.FC = () => {
       {gameOver && (
         <div className="mt-8 text-center">
           <button
-            onClick={startNewGame}
+            onClick={() => startNewGame()}
             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+            disabled={loading}
           >
-            New Game
+            {loading ? 'Loading...' : 'New Game'}
           </button>
         </div>
       )}
