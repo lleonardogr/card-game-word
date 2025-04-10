@@ -169,6 +169,21 @@ export const Game: React.FC = () => {
         <Keyboard onKeyPress={handleKeyPress} letterStates={letterStates} />
       </div>
       
+      {/* Footer with attribution and donation link */}
+      <div className="mt-8 flex flex-col items-center text-center space-y-2">
+        <p className="text-gray-600 dark:text-gray-400">
+          Made with ❤️ and Coding
+        </p>
+        <a 
+          href="https://donate.stripe.com/14kdTw0R07AdeQg3cc" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-blue-500 hover:text-blue-700 hover:underline transition-colors"
+        >
+          Buy me a coffee
+        </a>
+      </div>
+      
       {gameOver && (
         <div className="mt-8 text-center">
           <button
