@@ -64,7 +64,7 @@ export const Help: React.FC = () => {
               </div>
               
               <p className="mt-4">
-                Card names are randomly selected from Magic: The Gathering's legendary creatures using the{' '}
+                Card names are randomly selected from Magic: The Gathering&apos;s legendary creatures using the{' '}
                 <a 
                   href="https://scryfall.com/docs/api" 
                   target="_blank" 

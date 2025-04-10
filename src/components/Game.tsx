@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { WordRow } from './WordRow';
 import { Keyboard } from './Keyboard';
 import { Help } from './Help';
-import { isValidWord } from '@/utils/words';
 import { getPlayableCardName, ProcessedCardName } from '@/utils/scryfall';
 import { evaluateGuess, GuessResult, getKeyboardLetterStates, isCorrectGuess } from '@/utils/game';
 
@@ -11,7 +10,6 @@ export const Game: React.FC = () => {
   const [guesses, setGuesses] = useState<GuessResult[][]>([]);
   const [currentGuess, setCurrentGuess] = useState<string>('');
   const [gameOver, setGameOver] = useState<boolean>(false);
-  const [gameWon, setGameWon] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [originalCardName, setOriginalCardName] = useState<string>('');
@@ -30,7 +28,6 @@ export const Game: React.FC = () => {
       setGuesses([]);
       setCurrentGuess('');
       setGameOver(false);
-      setGameWon(false);
       setMessage('');
     } catch (error) {
       console.error('Failed to start new game:', error);
@@ -39,6 +36,42 @@ export const Game: React.FC = () => {
       setLoading(false);
     }
   }, []);
+
+  const handleLetter = useCallback((letter: string) => {
+    if (currentGuess.length < wordLength) {
+      setCurrentGuess(prev => prev + letter);
+    }
+  }, [currentGuess.length, wordLength]);
+
+  const handleBackspace = useCallback(() => {
+    setCurrentGuess(prev => prev.slice(0, -1));
+  }, []);
+
+  const handleEnter = useCallback(() => {
+    // Ignore if the guess does not match the expected word length
+    if (currentGuess.length !== wordLength) {
+      setMessage(`Word must be ${wordLength} letters`);
+      setTimeout(() => setMessage(''), 2000);
+      return;
+    }
+
+    // Evaluate the guess
+    const result = evaluateGuess(currentGuess, targetWord);
+    const newGuesses = [...guesses, result];
+    setGuesses(newGuesses);
+    setCurrentGuess('');
+
+    // Check if the player won
+    if (isCorrectGuess(currentGuess, targetWord)) {
+      setGameOver(true);
+      setMessage(`Correct! The card name was "${originalCardName}"`);
+    } 
+    // Check if the player lost (used all 6 guesses)
+    else if (newGuesses.length >= 6) {
+      setGameOver(true);
+      setMessage(`Game over! The card name was "${originalCardName}"`);
+    }
+  }, [currentGuess, wordLength, targetWord, guesses, originalCardName]);
 
   // Initialize on first render
   useEffect(() => {
@@ -63,7 +96,7 @@ export const Game: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [currentGuess, gameOver, loading, guesses]);
+  }, [currentGuess, gameOver, loading, guesses, handleEnter, handleBackspace, handleLetter]);
 
   const handleKeyPress = (key: string) => {
     if (gameOver || loading) return;
@@ -74,43 +107,6 @@ export const Game: React.FC = () => {
       handleBackspace();
     } else {
       handleLetter(key);
-    }
-  };
-
-  const handleLetter = (letter: string) => {
-    if (currentGuess.length < wordLength) {
-      setCurrentGuess(currentGuess + letter);
-    }
-  };
-
-  const handleBackspace = () => {
-    setCurrentGuess(currentGuess.slice(0, -1));
-  };
-
-  const handleEnter = () => {
-    // Ignore if the guess does not match the expected word length
-    if (currentGuess.length !== wordLength) {
-      setMessage(`Word must be ${wordLength} letters`);
-      setTimeout(() => setMessage(''), 2000);
-      return;
-    }
-
-    // Evaluate the guess
-    const result = evaluateGuess(currentGuess, targetWord);
-    const newGuesses = [...guesses, result];
-    setGuesses(newGuesses);
-    setCurrentGuess('');
-
-    // Check if the player won
-    if (isCorrectGuess(currentGuess, targetWord)) {
-      setGameWon(true);
-      setGameOver(true);
-      setMessage(`Correct! The card name was "${originalCardName}"`);
-    } 
-    // Check if the player lost (used all 6 guesses)
-    else if (newGuesses.length >= 6) {
-      setGameOver(true);
-      setMessage(`Game over! The card name was "${originalCardName}"`);
     }
   };
 
