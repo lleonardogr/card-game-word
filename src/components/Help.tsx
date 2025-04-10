@@ -51,6 +51,31 @@ export const Help: React.FC = () => {
                 <li>After each guess, the color of the tiles will change to show how close you are.</li>
               </ul>
               
+              <h3 className="text-lg font-semibold mt-2">Game Modes:</h3>
+              <div className="space-y-3 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                <div>
+                  <h4 className="font-medium">Normal Mode:</h4>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    <li>Only letters matter (spaces and special characters are ignored).</li>
+                    <li>Only the part of the card name before any comma is used.</li>
+                    <li>Example: For "Jace, the Mind Sculptor", you only need to guess "JACE".</li>
+                    <li>This is perfect for beginners or casual play.</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium text-blue-600 dark:text-blue-400">Hard Mode:</h4>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    <li>The <strong>entire</strong> card name must be guessed, including spaces, commas, and special characters.</li>
+                    <li>The complete card name is used, not just the part before the comma.</li>
+                    <li>Example: For "Jace, the Mind Sculptor", you must guess "JACE, THE MIND SCULPTOR".</li>
+                    <li>Spaces will appear as gaps between letters.</li>
+                    <li>Special characters will appear as purple tiles when revealed.</li>
+                    <li>For true Magic fans who want a challenge!</li>
+                  </ul>
+                </div>
+              </div>
+              
               <h3 className="text-lg font-semibold mt-2">Color Key:</h3>
               <div className="space-y-2">
                 <div className="flex items-center">
@@ -64,6 +89,10 @@ export const Help: React.FC = () => {
                 <div className="flex items-center">
                   <div className="w-6 h-6 bg-gray-500 rounded mr-2"></div>
                   <span>Letter not in the word</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-6 h-6 bg-purple-500 rounded mr-2"></div>
+                  <span>Special character (hard mode only)</span>
                 </div>
               </div>
               
@@ -92,6 +121,12 @@ export const Help: React.FC = () => {
                   </svg>
                 </a>
               </p>
+              
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm">
+                  <strong>Tip:</strong> You can toggle between Normal and Hard mode using the settings button (⚙️) in the top right corner.
+                </p>
+              </div>
               
               <p className="text-sm text-gray-500 mt-4">
                 <strong>Note:</strong> This game is not affiliated with, endorsed, sponsored, or specifically approved 

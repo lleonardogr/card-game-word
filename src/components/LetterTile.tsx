@@ -23,6 +23,10 @@ export const LetterTile: React.FC<LetterTileProps> = ({
         return 'bg-yellow-500';
       case 'absent':
         return 'bg-gray-500';
+      case 'space':
+        return 'bg-transparent';
+      case 'special':
+        return 'bg-purple-500';
       case 'empty':
       default:
         return 'bg-white dark:bg-gray-800';
@@ -30,6 +34,9 @@ export const LetterTile: React.FC<LetterTileProps> = ({
   };
 
   const getBorderColor = () => {
+    if (state === 'space') {
+      return 'border-transparent';
+    }
     return state === 'empty' ? 'border-gray-300 dark:border-gray-600' : 'border-transparent';
   };
 
@@ -49,8 +56,20 @@ export const LetterTile: React.FC<LetterTileProps> = ({
 
   // Determine which animation variant to use
   let animationVariant = 'idle';
-  if (isRevealing) {
+  if (isRevealing && state !== 'space') {
     animationVariant = 'revealing';
+  }
+
+  // For space tiles, use a smaller width or no tile
+  if (state === 'space') {
+    return (
+      <motion.div
+        className="w-4 h-14 flex-shrink-0"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay }}
+      />
+    );
   }
 
   return (

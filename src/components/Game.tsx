@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { WordRow } from './WordRow';
 import { Keyboard } from './Keyboard';
 import { Help } from './Help';
+import { Settings } from './Settings';
 import { getPlayableCardName, ProcessedCardName, DEFAULT_QUERY } from '@/utils/scryfall';
 import { evaluateGuess, GuessResult, getKeyboardLetterStates, isCorrectGuess } from '@/utils/game';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,6 +17,23 @@ export const Game: React.FC = () => {
   const [originalCardName, setOriginalCardName] = useState<string>('');
   const [wordLength, setWordLength] = useState<number>(5);
   const [cardUrl, setCardUrl] = useState<string>('');
+  const [hasSpaces, setHasSpaces] = useState<boolean>(false);
+  const [letterPositions, setLetterPositions] = useState<number[]>([]);
+  const [hardMode, setHardMode] = useState<boolean>(false);
+  
+  // Store hard mode preference in localStorage
+  useEffect(() => {
+    // Load hard mode setting from localStorage
+    const savedHardMode = localStorage.getItem('hardMode');
+    if (savedHardMode) {
+      setHardMode(savedHardMode === 'true');
+    }
+  }, []);
+
+  // Save hard mode preference when it changes
+  useEffect(() => {
+    localStorage.setItem('hardMode', String(hardMode));
+  }, [hardMode]);
   
   // Initialize a new game
   const startNewGame = useCallback(async () => {
@@ -24,13 +42,33 @@ export const Game: React.FC = () => {
     
     try {
       const cardResult: ProcessedCardName = await getPlayableCardName(3, 8);
-      setTargetWord(cardResult.processedName);
-      setOriginalCardName(cardResult.originalName);
-      setWordLength(cardResult.processedName.length);
       
-      // Generate Scryfall search URL for this specific card using the name%253D format
-      const encodedCardName = encodeURIComponent(cardResult.originalName);
-      setCardUrl(`https://scryfall.com/search?q=name=${encodedCardName}`);
+      // In hard mode, use the full card name (including commas and all characters)
+      if (hardMode) {
+        const fullCardName = cardResult.fullCardName;
+        setTargetWord(fullCardName);
+        setWordLength(fullCardName.length);
+        
+        // Calculate spaces and special characters for display
+        const hasSpacesOrSpecial = /[\s,]/.test(fullCardName);
+        setHasSpaces(hasSpacesOrSpecial);
+        
+        // For hard mode, just use sequential positions for all characters
+        const positions = [...Array(fullCardName.length).keys()];
+        setLetterPositions(positions);
+      } else {
+        // Normal mode - only use the processed name (letters only)
+        setTargetWord(cardResult.processedName);
+        setWordLength(cardResult.processedName.length);
+        setHasSpaces(cardResult.hasSpaces);
+        setLetterPositions(cardResult.letterPositions);
+      }
+      
+      setOriginalCardName(hardMode ? cardResult.fullCardName : cardResult.originalName);
+      
+      // Generate Scryfall search URL for this specific card
+      const encodedCardName = encodeURIComponent(cardResult.fullCardName.replace(/^"|"$/g, ''));
+      setCardUrl(`https://scryfall.com/search?q=name%253D${encodedCardName}`);
       
       setGuesses([]);
       setCurrentGuess('');
@@ -42,7 +80,19 @@ export const Game: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [hardMode]);
+
+  // Handle toggling hard mode
+  const handleToggleHardMode = useCallback((enabled: boolean) => {
+    setHardMode(enabled);
+    // Restart game when changing mode
+    if (!loading && !gameOver) {
+      setMessage(enabled ? 'Hard mode enabled! Starting a new game...' : 'Normal mode enabled! Starting a new game...');
+      setTimeout(() => {
+        startNewGame();
+      }, 1000);
+    }
+  }, [loading, gameOver, startNewGame]);
 
   const handleLetter = useCallback((letter: string) => {
     if (currentGuess.length < wordLength) {
@@ -57,7 +107,7 @@ export const Game: React.FC = () => {
   const handleEnter = useCallback(() => {
     // Ignore if the guess does not match the expected word length
     if (currentGuess.length !== wordLength) {
-      setMessage(`Word must be ${wordLength} letters`);
+      setMessage(`Word must be ${wordLength} characters`);
       setTimeout(() => setMessage(''), 2000);
       return;
     }
@@ -94,7 +144,13 @@ export const Game: React.FC = () => {
         handleEnter();
       } else if (e.key === 'Backspace') {
         handleBackspace();
+      } else if (hardMode) {
+        // In hard mode, allow more characters
+        if (/^[a-zA-Z0-9\s,.'-]$/.test(e.key)) {
+          handleLetter(e.key.toUpperCase());
+        }
       } else if (/^[a-zA-Z]$/.test(e.key)) {
+        // Normal mode: only letters
         handleLetter(e.key.toUpperCase());
       }
     };
@@ -103,7 +159,7 @@ export const Game: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [currentGuess, gameOver, loading, guesses, handleEnter, handleBackspace, handleLetter]);
+  }, [currentGuess, gameOver, loading, guesses, handleEnter, handleBackspace, handleLetter, hardMode]);
 
   const handleKeyPress = (key: string) => {
     if (gameOver || loading) return;
@@ -123,19 +179,42 @@ export const Game: React.FC = () => {
   // Generate rows for the game board
   const rows = [];
   
+  // Generate game mode message
+  const gameModeText = hardMode 
+    ? "Hard Mode: Guess the full card name" 
+    : `Normal Mode: Guess the ${wordLength}-letter card name`;
+
   // Add rows for completed guesses
   for (let i = 0; i < guesses.length; i++) {
-    rows.push(<WordRow key={`guess-${i}`} guess={guesses[i]} wordLength={wordLength} className="completed-row" />);
+    rows.push(<WordRow key={`guess-${i}`} guess={guesses[i]} wordLength={wordLength} className="completed-row" hasSpaces={hasSpaces} />);
   }
   
   // Add row for current guess if game is not over
   if (!gameOver && guesses.length < 6) {
-    rows.push(<WordRow key={`current-${guesses.length}`} guess={null} currentGuess={currentGuess} wordLength={wordLength} className="current-row" />);
+    rows.push(
+      <WordRow 
+        key={`current-${guesses.length}`} 
+        guess={null} 
+        currentGuess={currentGuess} 
+        wordLength={wordLength} 
+        className="current-row" 
+        hasSpaces={hasSpaces} 
+      />
+    );
   }
   
   // Add empty rows to fill the board
   for (let i = rows.length; i < 6; i++) {
-    rows.push(<WordRow key={`empty-${i}`} guess={null} currentGuess="" wordLength={wordLength} className="empty-row" />);
+    rows.push(
+      <WordRow 
+        key={`empty-${i}`} 
+        guess={null} 
+        currentGuess="" 
+        wordLength={wordLength} 
+        className="empty-row" 
+        hasSpaces={hasSpaces} 
+      />
+    );
   }
 
   // Generate Scryfall search URL for legendary creatures
@@ -143,8 +222,9 @@ export const Game: React.FC = () => {
 
   return (
     <div className="max-w-md w-full mx-auto p-4 flex flex-col items-center">
-      {/* Help button positioned fixed at top right, above the title */}
-      <div className="fixed top-4 right-4 z-10">
+      {/* Help and Settings buttons positioned fixed at top right */}
+      <div className="fixed top-4 right-4 z-10 flex gap-2">
+        <Settings hardMode={hardMode} onToggleHardMode={handleToggleHardMode} />
         <Help />
       </div>
 
@@ -215,7 +295,9 @@ export const Game: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            Guess the {wordLength}-letter card name
+            <span className={hardMode ? "text-blue-600 font-semibold" : ""}>
+              {gameModeText}
+            </span>
             
             <a 
               href={scryfallSearchUrl}

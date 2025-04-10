@@ -38,35 +38,61 @@ export const fetchRandomCard = async (query: string = DEFAULT_QUERY): Promise<Sc
 };
 
 export interface ProcessedCardName {
-  processedName: string;
-  originalName: string;
+  processedName: string;     // Standard version (letters only)
+  originalName: string;      // Original display name (before comma, for normal mode)
+  fullCardName: string;      // The complete card name for hard mode
+  letterPositions: number[]; // Positions of letters in the name (for spaces handling)
+  hasSpaces: boolean;        // Flag indicating if the name has spaces
 }
 
 /**
- * Process a card name to get the part before a comma
+ * Process a card name for the game
  * @param cardName The original card name
  * @param minLength Minimum acceptable length (default 3)
  * @param maxLength Maximum acceptable length (default 8)
  */
 export const processCardName = (cardName: string, minLength = 3, maxLength = 8): ProcessedCardName | null => {
-  // Extract the part before any comma
+  // For hard mode: use the complete card name
+  const fullCardName = cardName.toUpperCase();
+  
+  // For normal mode: Extract the part before any comma
   const nameBeforeComma = cardName.split(',')[0].trim().toUpperCase();
   const originalName = nameBeforeComma;
   
-  // Remove non-alphabetic characters
-  const onlyLetters = nameBeforeComma.replace(/[^A-Z]/g, '');
+  // Process the name to track letter positions and spaces
+  const letterPositions: number[] = [];
+  let processedName = '';
+  let hasSpaces = false;
+  
+  // Find letter positions and handle spaces
+  for (let i = 0; i < nameBeforeComma.length; i++) {
+    const char = nameBeforeComma[i];
+    if (/[A-Z]/i.test(char)) {
+      letterPositions.push(processedName.length);
+      processedName += char.toUpperCase();
+    } else if (char === ' ') {
+      hasSpaces = true;
+    }
+    // Skip other non-alphabetic characters
+  }
   
   // Check if the name length is within acceptable range
-  if (onlyLetters.length >= minLength && onlyLetters.length <= maxLength) {
+  if (processedName.length >= minLength && processedName.length <= maxLength) {
     return { 
-      processedName: onlyLetters,
-      originalName
+      processedName,
+      originalName,
+      fullCardName,
+      letterPositions,
+      hasSpaces
     };
-  } else if (onlyLetters.length > maxLength) {
-    // Truncate to max length
+  } else if (processedName.length > maxLength) {
+    // Truncate to max length for normal mode only
     return {
-      processedName: onlyLetters.substring(0, maxLength),
-      originalName
+      processedName: processedName.substring(0, maxLength),
+      originalName,
+      fullCardName,
+      letterPositions: letterPositions.filter(pos => pos < maxLength),
+      hasSpaces
     };
   }
   
@@ -105,6 +131,9 @@ export const getPlayableCardName = async (
   // Fallback to a default name if we couldn't get a suitable card after several attempts
   return { 
     processedName: 'JACE', 
-    originalName: 'Jace Beleren'
+    originalName: 'Jace Beleren',
+    fullCardName: 'JACE BELEREN',
+    letterPositions: [0, 1, 2, 3],
+    hasSpaces: false
   };
 };
