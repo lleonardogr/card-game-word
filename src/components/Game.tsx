@@ -207,7 +207,7 @@ export const Game: React.FC = () => {
           Made with ❤️ and Coding
         </p>
         <a 
-          href="https://donate.stripe.com/14kdTw0R07AdeQg3cc" 
+          href="https://buy.stripe.com/8wM2aOeHQ07LaA0aEF" 
           target="_blank" 
           rel="noopener noreferrer"
           className="text-blue-500 hover:text-blue-700 hover:underline transition-colors"
