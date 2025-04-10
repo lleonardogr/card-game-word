@@ -58,7 +58,7 @@ export const Help: React.FC = () => {
                   <ul className="list-disc pl-5 space-y-1 text-sm">
                     <li>Only letters matter (spaces and special characters are ignored).</li>
                     <li>Only the part of the card name before any comma is used.</li>
-                    <li>Example: For "Jace, the Mind Sculptor&quot;, you only need to guess &quot;JACE&quot;.</li>
+                    <li>Example: For &quot;Jace, the Mind Sculptor&quot;, you only need to guess &quot;JACE&quot;.</li>
                     <li>This is perfect for beginners or casual play.</li>
                   </ul>
                 </div>
