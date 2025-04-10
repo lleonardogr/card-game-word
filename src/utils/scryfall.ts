@@ -19,9 +19,15 @@ interface ScryfallCard {
 }
 
 /**
+ * Default query for card search
+ * t=legendary type=creature will fetch legendary creature cards
+ */
+export const DEFAULT_QUERY = 't=legendary type=creature';
+
+/**
  * Fetches a random card from Scryfall API
  */
-export const fetchRandomCard = async (query: string = 't=legendary'): Promise<ScryfallCard> => {
+export const fetchRandomCard = async (query: string = DEFAULT_QUERY): Promise<ScryfallCard> => {
   const response = await fetch(`https://api.scryfall.com/cards/random?q=${encodeURIComponent(query)}`);
   
   if (!response.ok) {
