@@ -9,6 +9,7 @@ export interface GuessResult {
 export function evaluateGuess(guess: string, targetWord: string): GuessResult[] {
   const result: GuessResult[] = [];
   const targetLetterCount: Record<string, number> = {};
+  const wordLength = targetWord.length;
 
   // Count each letter in the target word
   for (const letter of targetWord) {
@@ -18,9 +19,9 @@ export function evaluateGuess(guess: string, targetWord: string): GuessResult[] 
   // First pass: mark correct letters
   const guessCopy = guess.split('');
   const targetCopy = targetWord.split('');
-  const used: boolean[] = Array(5).fill(false);
+  const used: boolean[] = Array(wordLength).fill(false);
 
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < wordLength; i++) {
     if (guessCopy[i] === targetCopy[i]) {
       result[i] = { letter: guessCopy[i], state: 'correct' };
       targetLetterCount[guessCopy[i]]--;
@@ -29,7 +30,7 @@ export function evaluateGuess(guess: string, targetWord: string): GuessResult[] 
   }
 
   // Second pass: mark present and absent letters
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < wordLength; i++) {
     if (!used[i]) {
       if (targetLetterCount[guessCopy[i]] > 0) {
         result[i] = { letter: guessCopy[i], state: 'present' };

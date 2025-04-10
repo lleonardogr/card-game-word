@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { WordRow } from './WordRow';
 import { Keyboard } from './Keyboard';
 import { isValidWord } from '@/utils/words';
-import { getPlayableCardName } from '@/utils/scryfall';
+import { getPlayableCardName, ProcessedCardName } from '@/utils/scryfall';
 import { evaluateGuess, GuessResult, getKeyboardLetterStates, isCorrectGuess } from '@/utils/game';
 
 export const Game: React.FC = () => {
@@ -14,6 +14,7 @@ export const Game: React.FC = () => {
   const [message, setMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [originalCardName, setOriginalCardName] = useState<string>('');
+  const [wordLength, setWordLength] = useState<number>(5);
   
   // Initialize a new game
   const startNewGame = useCallback(async () => {
@@ -21,9 +22,10 @@ export const Game: React.FC = () => {
     setMessage('Loading new card...');
     
     try {
-      const newWord = await getPlayableCardName();
-      setTargetWord(newWord);
-      // Original card name is logged in getPlayableCardName
+      const cardResult: ProcessedCardName = await getPlayableCardName(3, 8);
+      setTargetWord(cardResult.processedName);
+      setOriginalCardName(cardResult.originalName);
+      setWordLength(cardResult.processedName.length);
       setGuesses([]);
       setCurrentGuess('');
       setGameOver(false);
@@ -75,7 +77,7 @@ export const Game: React.FC = () => {
   };
 
   const handleLetter = (letter: string) => {
-    if (currentGuess.length < 5) {
+    if (currentGuess.length < wordLength) {
       setCurrentGuess(currentGuess + letter);
     }
   };
@@ -85,20 +87,12 @@ export const Game: React.FC = () => {
   };
 
   const handleEnter = () => {
-    // Ignore if the guess is not 5 letters
-    if (currentGuess.length !== 5) {
-      setMessage('Word must be 5 letters');
+    // Ignore if the guess does not match the expected word length
+    if (currentGuess.length !== wordLength) {
+      setMessage(`Word must be ${wordLength} letters`);
       setTimeout(() => setMessage(''), 2000);
       return;
     }
-
-    // Validate word only if using dictionary validation
-    // For card game, we'll accept any 5-letter combination
-    // if (!isValidWord(currentGuess)) {
-    //   setMessage('Not in word list');
-    //   setTimeout(() => setMessage(''), 2000);
-    //   return;
-    // }
 
     // Evaluate the guess
     const result = evaluateGuess(currentGuess, targetWord);
@@ -110,12 +104,12 @@ export const Game: React.FC = () => {
     if (isCorrectGuess(currentGuess, targetWord)) {
       setGameWon(true);
       setGameOver(true);
-      setMessage(`Correct! The card name was ${targetWord}`);
+      setMessage(`Correct! The card name was "${originalCardName}"`);
     } 
     // Check if the player lost (used all 6 guesses)
     else if (newGuesses.length >= 6) {
       setGameOver(true);
-      setMessage(`Game over! The card name was ${targetWord}`);
+      setMessage(`Game over! The card name was "${originalCardName}"`);
     }
   };
 
@@ -127,17 +121,17 @@ export const Game: React.FC = () => {
   
   // Add rows for completed guesses
   for (let i = 0; i < guesses.length; i++) {
-    rows.push(<WordRow key={i} guess={guesses[i]} />);
+    rows.push(<WordRow key={i} guess={guesses[i]} wordLength={wordLength} />);
   }
   
   // Add row for current guess if game is not over
   if (!gameOver && guesses.length < 6) {
-    rows.push(<WordRow key={guesses.length} guess={null} currentGuess={currentGuess} />);
+    rows.push(<WordRow key={guesses.length} guess={null} currentGuess={currentGuess} wordLength={wordLength} />);
   }
   
   // Add empty rows to fill the board
   for (let i = rows.length; i < 6; i++) {
-    rows.push(<WordRow key={i} guess={null} currentGuess="" />);
+    rows.push(<WordRow key={i} guess={null} currentGuess="" wordLength={wordLength} />);
   }
 
   return (
@@ -158,6 +152,9 @@ export const Game: React.FC = () => {
         </div>
       ) : (
         <div className="mb-8 flex flex-col items-center">
+          <div className="mb-4 text-center text-sm text-gray-500">
+            Guess the {wordLength}-letter card name
+          </div>
           {rows}
         </div>
       )}

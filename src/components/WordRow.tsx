@@ -5,14 +5,15 @@ import { GuessResult } from '@/utils/game';
 interface WordRowProps {
   guess: GuessResult[] | null;
   currentGuess?: string;
+  wordLength: number;
 }
 
-export const WordRow: React.FC<WordRowProps> = ({ guess, currentGuess = '' }) => {
+export const WordRow: React.FC<WordRowProps> = ({ guess, currentGuess = '', wordLength = 5 }) => {
   const tiles = [];
 
   // If we have a completed guess, show it with the proper states
   if (guess) {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < wordLength; i++) {
       tiles.push(
         <LetterTile 
           key={i} 
@@ -24,7 +25,7 @@ export const WordRow: React.FC<WordRowProps> = ({ guess, currentGuess = '' }) =>
   }
   // Otherwise, show the current in-progress guess
   else {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < wordLength; i++) {
       tiles.push(
         <LetterTile 
           key={i} 
@@ -36,7 +37,7 @@ export const WordRow: React.FC<WordRowProps> = ({ guess, currentGuess = '' }) =>
   }
 
   return (
-    <div className="flex gap-2 mb-2">
+    <div className="flex gap-2 mb-2 justify-center">
       {tiles}
     </div>
   );

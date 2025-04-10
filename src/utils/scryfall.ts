@@ -31,22 +31,37 @@ export const fetchRandomCard = async (query: string = 't=legendary'): Promise<Sc
   return await response.json();
 };
 
+export interface ProcessedCardName {
+  processedName: string;
+  originalName: string;
+}
+
 /**
- * Process a card name to get the part before a comma and ensure it's 5 letters
+ * Process a card name to get the part before a comma
+ * @param cardName The original card name
+ * @param minLength Minimum acceptable length (default 3)
+ * @param maxLength Maximum acceptable length (default 8)
  */
-export const processCardName = (cardName: string): string | null => {
+export const processCardName = (cardName: string, minLength = 3, maxLength = 8): ProcessedCardName | null => {
   // Extract the part before any comma
   const nameBeforeComma = cardName.split(',')[0].trim().toUpperCase();
+  const originalName = nameBeforeComma;
   
   // Remove non-alphabetic characters
   const onlyLetters = nameBeforeComma.replace(/[^A-Z]/g, '');
   
-  // Check if the name has exactly 5 letters or can be extracted to 5 letters
-  if (onlyLetters.length === 5) {
-    return onlyLetters;
-  } else if (onlyLetters.length > 5) {
-    // Use the first 5 letters
-    return onlyLetters.substring(0, 5);
+  // Check if the name length is within acceptable range
+  if (onlyLetters.length >= minLength && onlyLetters.length <= maxLength) {
+    return { 
+      processedName: onlyLetters,
+      originalName
+    };
+  } else if (onlyLetters.length > maxLength) {
+    // Truncate to max length
+    return {
+      processedName: onlyLetters.substring(0, maxLength),
+      originalName
+    };
   }
   
   // Name is too short, can't use it
@@ -54,9 +69,13 @@ export const processCardName = (cardName: string): string | null => {
 };
 
 /**
- * Gets a card name that can be used in the game (5 letters)
+ * Gets a card name that can be used in the game
  */
-export const getPlayableCardName = async (maxAttempts: number = 10): Promise<string> => {
+export const getPlayableCardName = async (
+  minLength = 3, 
+  maxLength = 8,
+  maxAttempts = 10
+): Promise<ProcessedCardName> => {
   let attempts = 0;
   
   while (attempts < maxAttempts) {
@@ -64,19 +83,22 @@ export const getPlayableCardName = async (maxAttempts: number = 10): Promise<str
     
     try {
       const card = await fetchRandomCard();
-      const processedName = processCardName(card.name);
+      const nameResult = processCardName(card.name, minLength, maxLength);
       
-      if (processedName) {
-        console.log('Using card:', card.name, '→', processedName);
-        return processedName;
+      if (nameResult) {
+        console.log('Using card:', card.name, '→', nameResult.processedName);
+        return nameResult;
       }
       
-      console.log('Skipping card:', card.name, '(name too short)');
+      console.log('Skipping card:', card.name, '(name length not suitable)');
     } catch (error) {
       console.error('Error fetching card:', error);
     }
   }
   
   // Fallback to a default name if we couldn't get a suitable card after several attempts
-  return 'JACES';
+  return { 
+    processedName: 'JACE', 
+    originalName: 'Jace Beleren'
+  };
 };
