@@ -78,7 +78,7 @@ export const Game: React.FC = () => {
       
       // Generate Scryfall search URL for this specific card
       const encodedCardName = encodeURIComponent(cardResult.fullCardName.replace(/^"|"$/g, ''));
-      setCardUrl(`https://scryfall.com/search?q=name%253D${encodedCardName}`);
+      setCardUrl(`https://scryfall.com/search?q=name=${encodedCardName}`);
       
       setGuesses([]);
       setCurrentGuess('');
