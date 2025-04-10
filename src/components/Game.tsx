@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { WordRow } from './WordRow';
 import { Keyboard } from './Keyboard';
+import { Help } from './Help';
 import { isValidWord } from '@/utils/words';
 import { getPlayableCardName, ProcessedCardName } from '@/utils/scryfall';
 import { evaluateGuess, GuessResult, getKeyboardLetterStates, isCorrectGuess } from '@/utils/game';
@@ -135,9 +136,14 @@ export const Game: React.FC = () => {
   }
 
   return (
-    <div className="max-w-md w-full mx-auto p-4 flex flex-col items-center">
+    <div className="max-w-md w-full mx-auto p-4 flex flex-col items-center relative">
       <div className="flex justify-center mb-8 w-full">
         <h1 className="text-3xl font-bold text-center">Cardle: Guess the Card!</h1>
+      </div>
+
+      {/* Help button positioned at top right */}
+      <div className="absolute top-4 right-4">
+        <Help />
       </div>
 
       {message && (
