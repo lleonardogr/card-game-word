@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { WordRow } from './WordRow';
 import { Keyboard } from './Keyboard';
 import { Help } from './Help';
-import { getPlayableCardName, ProcessedCardName } from '@/utils/scryfall';
+import { getPlayableCardName, ProcessedCardName, DEFAULT_QUERY } from '@/utils/scryfall';
 import { evaluateGuess, GuessResult, getKeyboardLetterStates, isCorrectGuess } from '@/utils/game';
 
 export const Game: React.FC = () => {
@@ -131,6 +131,9 @@ export const Game: React.FC = () => {
     rows.push(<WordRow key={i} guess={null} currentGuess="" wordLength={wordLength} />);
   }
 
+  // Generate Scryfall search URL for legendary creatures
+  const scryfallSearchUrl = `https://scryfall.com/search?q=${encodeURIComponent(DEFAULT_QUERY)}`;
+
   return (
     <div className="max-w-md w-full mx-auto p-4 flex flex-col items-center">
       {/* Help button positioned fixed at top right, above the title */}
@@ -156,6 +159,18 @@ export const Game: React.FC = () => {
         <div className="mb-8 flex flex-col items-center">
           <div className="mb-4 text-center text-sm text-gray-500">
             Guess the {wordLength}-letter card name
+            
+            <a 
+              href={scryfallSearchUrl}
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline inline-flex items-center ml-2"
+            >
+              <span className="underline">Browse all cards</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
           </div>
           {rows}
         </div>
