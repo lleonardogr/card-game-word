@@ -20,6 +20,7 @@ export const Game: React.FC = () => {
   const [hasSpaces, setHasSpaces] = useState<boolean>(false);
   const [letterPositions, setLetterPositions] = useState<number[]>([]);
   const [hardMode, setHardMode] = useState<boolean>(false);
+  const [pendingModeChange, setPendingModeChange] = useState<boolean | null>(null);
   
   // Store hard mode preference in localStorage
   useEffect(() => {
@@ -33,7 +34,16 @@ export const Game: React.FC = () => {
   // Save hard mode preference when it changes
   useEffect(() => {
     localStorage.setItem('hardMode', String(hardMode));
-  }, [hardMode]);
+    
+    // Handle pending mode change
+    if (pendingModeChange !== null) {
+      setLoading(true);
+      setMessage(hardMode ? 'Hard mode enabled! Starting a new game...' : 'Normal mode enabled! Starting a new game...');
+      setPendingModeChange(null);
+      // Give UI time to update before fetching a new card
+      setTimeout(() => startNewGame(), 500);
+    }
+  }, [hardMode, pendingModeChange]);
   
   // Initialize a new game
   const startNewGame = useCallback(async () => {
@@ -82,17 +92,18 @@ export const Game: React.FC = () => {
     }
   }, [hardMode]);
 
-  // Handle toggling hard mode
+  // Handle toggling hard mode - now just sets a pending state change
   const handleToggleHardMode = useCallback((enabled: boolean) => {
-    setHardMode(enabled);
-    // Restart game when changing mode
-    if (!loading && !gameOver) {
-      setMessage(enabled ? 'Hard mode enabled! Starting a new game...' : 'Normal mode enabled! Starting a new game...');
-      setTimeout(() => {
-        startNewGame();
-      }, 1000);
+    if (hardMode !== enabled) {
+      setPendingModeChange(enabled);
+      setHardMode(enabled);
     }
-  }, [loading, gameOver, startNewGame]);
+  }, [hardMode]);
+
+  // Initial game setup
+  useEffect(() => {
+    startNewGame();
+  }, []); // Run only once on initial render
 
   const handleLetter = useCallback((letter: string) => {
     if (currentGuess.length < wordLength) {
@@ -129,11 +140,6 @@ export const Game: React.FC = () => {
       setMessage(`Game over! The card name was "${originalCardName}"`);
     }
   }, [currentGuess, wordLength, targetWord, guesses, originalCardName]);
-
-  // Initialize on first render
-  useEffect(() => {
-    startNewGame();
-  }, [startNewGame]);
 
   // Handle physical keyboard input
   useEffect(() => {

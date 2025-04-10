@@ -8,13 +8,15 @@ interface WordRowProps {
   currentGuess?: string;
   wordLength: number;
   className?: string;
+  hasSpaces?: boolean;
 }
 
 export const WordRow: React.FC<WordRowProps> = ({ 
   guess, 
   currentGuess = '', 
   wordLength = 5,
-  className = ''
+  className = '',
+  hasSpaces = false
 }) => {
   const tiles = [];
   const [isRevealing, setIsRevealing] = useState(false);
@@ -51,11 +53,14 @@ export const WordRow: React.FC<WordRowProps> = ({
   else {
     for (let i = 0; i < wordLength; i++) {
       const hasLetter = i < currentGuess.length;
+      // Add special styling or elements for spaces if hasSpaces is true
+      const isSpace = hasSpaces && currentGuess && currentGuess[i] === ' ';
+      
       tiles.push(
         <LetterTile 
           key={i} 
           letter={hasLetter ? currentGuess[i] : ''} 
-          state="empty" 
+          state={isSpace ? "space" : "empty"} 
         />
       );
     }
