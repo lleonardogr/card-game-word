@@ -18,7 +18,7 @@ export const Game: React.FC = () => {
   const [wordLength, setWordLength] = useState<number>(5);
   const [cardUrl, setCardUrl] = useState<string>('');
   const [hasSpaces, setHasSpaces] = useState<boolean>(false);
-  const [letterPositions, setLetterPositions] = useState<number[]>([]);
+  const [, setLetterPositions] = useState<number[]>([]);
   const [hardMode, setHardMode] = useState<boolean>(false);
   const [pendingModeChange, setPendingModeChange] = useState<boolean | null>(null);
   

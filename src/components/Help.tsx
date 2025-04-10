@@ -58,7 +58,7 @@ export const Help: React.FC = () => {
                   <ul className="list-disc pl-5 space-y-1 text-sm">
                     <li>Only letters matter (spaces and special characters are ignored).</li>
                     <li>Only the part of the card name before any comma is used.</li>
-                    <li>Example: For "Jace, the Mind Sculptor", you only need to guess "JACE".</li>
+                    <li>Example: For "Jace, the Mind Sculptor&quot;, you only need to guess &quot;JACE&quot;.</li>
                     <li>This is perfect for beginners or casual play.</li>
                   </ul>
                 </div>
@@ -68,7 +68,7 @@ export const Help: React.FC = () => {
                   <ul className="list-disc pl-5 space-y-1 text-sm">
                     <li>The <strong>entire</strong> card name must be guessed, including spaces, commas, and special characters.</li>
                     <li>The complete card name is used, not just the part before the comma.</li>
-                    <li>Example: For "Jace, the Mind Sculptor", you must guess "JACE, THE MIND SCULPTOR".</li>
+                    <li>Example: For &quot;Jace, the Mind Sculptor&quot;, you must guess &quot;JACE, THE MIND SCULPTOR&quot;.</li>
                     <li>Spaces will appear as gaps between letters.</li>
                     <li>Special characters will appear as purple tiles when revealed.</li>
                     <li>For true Magic fans who want a challenge!</li>
