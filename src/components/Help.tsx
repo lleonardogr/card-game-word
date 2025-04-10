@@ -4,10 +4,10 @@ export const Help: React.FC = () => {
   const [showHelp, setShowHelp] = useState<boolean>(false);
 
   return (
-    <div className="relative">
+    <div>
       <button
         onClick={() => setShowHelp(!showHelp)}
-        className="absolute top-0 right-0 p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+        className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
         aria-label="Help"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 

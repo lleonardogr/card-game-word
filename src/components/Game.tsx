@@ -136,14 +136,14 @@ export const Game: React.FC = () => {
   }
 
   return (
-    <div className="max-w-md w-full mx-auto p-4 flex flex-col items-center relative">
-      <div className="flex justify-center mb-8 w-full">
-        <h1 className="text-3xl font-bold text-center">Cardle: Guess the Card!</h1>
+    <div className="max-w-md w-full mx-auto p-4 flex flex-col items-center">
+      {/* Help button positioned fixed at top right, above the title */}
+      <div className="fixed top-4 right-4 z-10">
+        <Help />
       </div>
 
-      {/* Help button positioned at top right */}
-      <div className="absolute top-4 right-4">
-        <Help />
+      <div className="flex justify-center mb-8 w-full">
+        <h1 className="text-3xl font-bold text-center">Cardle: Guess the Card!</h1>
       </div>
 
       {message && (
