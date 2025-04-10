@@ -4,6 +4,7 @@ import { Keyboard } from './Keyboard';
 import { Help } from './Help';
 import { getPlayableCardName, ProcessedCardName, DEFAULT_QUERY } from '@/utils/scryfall';
 import { evaluateGuess, GuessResult, getKeyboardLetterStates, isCorrectGuess } from '@/utils/game';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const Game: React.FC = () => {
   const [targetWord, setTargetWord] = useState<string>('');
@@ -27,9 +28,9 @@ export const Game: React.FC = () => {
       setOriginalCardName(cardResult.originalName);
       setWordLength(cardResult.processedName.length);
       
-      // Generate Scryfall search URL for this specific card
-      const encodedCardName = encodeURIComponent(`!"${cardResult.originalName}"`);
-      setCardUrl(`https://scryfall.com/search?q=${encodedCardName}`);
+      // Generate Scryfall search URL for this specific card using the name%253D format
+      const encodedCardName = encodeURIComponent(cardResult.originalName);
+      setCardUrl(`https://scryfall.com/search?q=name=${encodedCardName}`);
       
       setGuesses([]);
       setCurrentGuess('');
@@ -124,17 +125,17 @@ export const Game: React.FC = () => {
   
   // Add rows for completed guesses
   for (let i = 0; i < guesses.length; i++) {
-    rows.push(<WordRow key={i} guess={guesses[i]} wordLength={wordLength} />);
+    rows.push(<WordRow key={`guess-${i}`} guess={guesses[i]} wordLength={wordLength} className="completed-row" />);
   }
   
   // Add row for current guess if game is not over
   if (!gameOver && guesses.length < 6) {
-    rows.push(<WordRow key={guesses.length} guess={null} currentGuess={currentGuess} wordLength={wordLength} />);
+    rows.push(<WordRow key={`current-${guesses.length}`} guess={null} currentGuess={currentGuess} wordLength={wordLength} className="current-row" />);
   }
   
   // Add empty rows to fill the board
   for (let i = rows.length; i < 6; i++) {
-    rows.push(<WordRow key={i} guess={null} currentGuess="" wordLength={wordLength} />);
+    rows.push(<WordRow key={`empty-${i}`} guess={null} currentGuess="" wordLength={wordLength} className="empty-row" />);
   }
 
   // Generate Scryfall search URL for legendary creatures
@@ -147,38 +148,73 @@ export const Game: React.FC = () => {
         <Help />
       </div>
 
-      <div className="flex justify-center mb-8 w-full">
+      <motion.div 
+        className="flex justify-center mb-8 w-full"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <h1 className="text-3xl font-bold text-center">Cardle: Guess the Card!</h1>
-      </div>
+      </motion.div>
 
-      {message && (
-        <div className="bg-gray-100 dark:bg-gray-800 p-2 text-center mb-4 rounded w-full">
-          <p>{message}</p>
-          {gameOver && cardUrl && (
-            <p className="mt-2">
-              <a
-                href={cardUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline inline-flex items-center justify-center"
+      <AnimatePresence>
+        {message && (
+          <motion.div 
+            className="bg-gray-100 dark:bg-gray-800 p-2 text-center mb-4 rounded w-full"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            key="message"
+          >
+            <p>{message}</p>
+            {gameOver && cardUrl && (
+              <motion.p 
+                className="mt-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
               >
-                View card on Scryfall
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-            </p>
-          )}
-        </div>
-      )}
+                <a
+                  href={cardUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:underline inline-flex items-center justify-center"
+                >
+                  View card on Scryfall
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </motion.p>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {loading ? (
-        <div className="mb-8 flex items-center justify-center">
+        <motion.div 
+          className="mb-8 flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
+        </motion.div>
       ) : (
-        <div className="mb-8 flex flex-col items-center">
-          <div className="mb-4 text-center text-sm text-gray-500">
+        <motion.div 
+          className="mb-8 flex flex-col items-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          key={`board-${targetWord}`} // Re-animate when target word changes
+        >
+          <motion.div 
+            className="mb-4 text-center text-sm text-gray-500"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
             Guess the {wordLength}-letter card name
             
             <a 
@@ -192,17 +228,29 @@ export const Game: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
             </a>
+          </motion.div>
+          <div className="game-board">
+            {rows}
           </div>
-          {rows}
-        </div>
+        </motion.div>
       )}
 
-      <div className="w-full">
+      <motion.div 
+        className="w-full"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
         <Keyboard onKeyPress={handleKeyPress} letterStates={letterStates} />
-      </div>
+      </motion.div>
       
       {/* Footer with attribution and donation link */}
-      <div className="mt-8 flex flex-col items-center text-center space-y-2">
+      <motion.div 
+        className="mt-8 flex flex-col items-center text-center space-y-2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      >
         <p className="text-gray-600 dark:text-gray-400">
           Made with ❤️ and Coding
         </p>
@@ -214,19 +262,34 @@ export const Game: React.FC = () => {
         >
           Buy me a coffee
         </a>
-      </div>
+      </motion.div>
       
-      {gameOver && (
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => startNewGame()}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-            disabled={loading}
+      <AnimatePresence>
+        {gameOver && (
+          <motion.div 
+            className="mt-8 text-center"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ 
+              type: "spring",
+              stiffness: 500,
+              damping: 30,
+              delay: 0.7 
+            }}
           >
-            {loading ? 'Loading...' : 'New Game'}
-          </button>
-        </div>
-      )}
+            <motion.button
+              onClick={() => startNewGame()}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+              disabled={loading}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {loading ? 'Loading...' : 'New Game'}
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
