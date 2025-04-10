@@ -14,6 +14,7 @@ export const Game: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [originalCardName, setOriginalCardName] = useState<string>('');
   const [wordLength, setWordLength] = useState<number>(5);
+  const [cardUrl, setCardUrl] = useState<string>('');
   
   // Initialize a new game
   const startNewGame = useCallback(async () => {
@@ -25,6 +26,11 @@ export const Game: React.FC = () => {
       setTargetWord(cardResult.processedName);
       setOriginalCardName(cardResult.originalName);
       setWordLength(cardResult.processedName.length);
+      
+      // Generate Scryfall search URL for this specific card
+      const encodedCardName = encodeURIComponent(`!"${cardResult.originalName}"`);
+      setCardUrl(`https://scryfall.com/search?q=${encodedCardName}`);
+      
       setGuesses([]);
       setCurrentGuess('');
       setGameOver(false);
@@ -147,7 +153,22 @@ export const Game: React.FC = () => {
 
       {message && (
         <div className="bg-gray-100 dark:bg-gray-800 p-2 text-center mb-4 rounded w-full">
-          {message}
+          <p>{message}</p>
+          {gameOver && cardUrl && (
+            <p className="mt-2">
+              <a
+                href={cardUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline inline-flex items-center justify-center"
+              >
+                View card on Scryfall
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </p>
+          )}
         </div>
       )}
 
