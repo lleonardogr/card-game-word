@@ -240,7 +240,7 @@ export const Game: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-3xl font-bold text-center">Cardle: Guess the Card!</h1>
+        <h1 className="text-3xl font-bold text-center">Manadle: Guess the Card!</h1>
       </motion.div>
 
       <AnimatePresence>

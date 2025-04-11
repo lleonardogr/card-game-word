@@ -37,11 +37,11 @@ export const Help: React.FC = () => {
               </svg>
             </button>
             
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">How to Play Cardle</h2>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">How to Play Manadle</h2>
             
             <div className="text-gray-700 dark:text-gray-300 space-y-4">
               <p>
-                <strong>Cardle</strong> is a word-guessing game based on Magic: The Gathering card names.
+                <strong>Manadle</strong> is a word-guessing game based on Magic: The Gathering card names.
               </p>
               
               <h3 className="text-lg font-semibold mt-2">Rules:</h3>
